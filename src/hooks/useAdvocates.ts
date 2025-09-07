@@ -1,4 +1,3 @@
-// hooks/useAdvocates.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { advocatesApi } from "../lib/api";
 import { Advocate } from "@/lib/types";
@@ -9,7 +8,7 @@ export function useAdvocates() {
   return useQuery({
     queryKey: ADVOCATES_QUERY_KEY,
     queryFn: advocatesApi.getAll,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -19,13 +18,11 @@ export function useCreateAdvocates() {
   return useMutation({
     mutationFn: advocatesApi.create,
     onSuccess: () => {
-      // Invalidate and refetch advocates after successful creation
       queryClient.invalidateQueries({ queryKey: ADVOCATES_QUERY_KEY });
     },
   });
 }
 
-// Custom hook for filtering advocates
 export function useAdvocateFilter(advocates: Advocate[], searchTerm: string) {
   if (!searchTerm) return advocates;
 
