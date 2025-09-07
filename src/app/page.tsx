@@ -1,65 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type Advocate = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  city: string;
-  degree: string;
-  specialties: string[];
-  yearsOfExperience: number;
-  phoneNumber: number;
-  createdAt: Date | null;
-};
+import { useAdvocateFilter, useAdvocates } from "@/hooks/useAdvocates";
+import { useState } from "react";
 
 export default function Home() {
-  const [advocates, setAdvocates] = useState<Advocate[]>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    console.log("fetching advocates...");
-    fetch("/api/advocates")
-      .then((response) => response.json())
-      .then((jsonResponse) => {
-        setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching advocates:", error);
-      });
-  }, []);
+  const { data: advocates = [], isLoading, error, isError } = useAdvocates();
+  const filteredAdvocates = useAdvocateFilter(advocates, searchTerm);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const searchTerm = e.target.value;
-
-    const searchTermElement = document.getElementById("search-term");
-    if (searchTermElement) {
-      searchTermElement.innerHTML = searchTerm;
-    }
-
-    console.log("filtering advocates...");
-    const filteredAdvocates = advocates.filter((advocate) => {
-      return (
-        advocate.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        advocate.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        advocate.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        advocate.degree.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        advocate.specialties.some((specialty) =>
-          specialty.toLowerCase().includes(searchTerm.toLowerCase())
-        ) ||
-        advocate.yearsOfExperience.toString().includes(searchTerm)
-      );
-    });
-
-    setFilteredAdvocates(filteredAdvocates);
+    setSearchTerm(e.target.value);
   };
 
-  const onClick = () => {
-    console.log(advocates);
-    setFilteredAdvocates(advocates);
+  const onReset = () => {
+    setSearchTerm("");
   };
+
+  if (isLoading) {
+    return (
+      <main style={{ margin: "24px" }}>
+        <h1>Solace Advocates</h1>
+        <p>Loading advocates...</p>
+      </main>
+    );
+  }
+
+  if (isError) {
+    return (
+      <main style={{ margin: "24px" }}>
+        <h1>Solace Advocates</h1>
+        <p>Error loading advocates: {error?.message}</p>
+      </main>
+    );
+  }
 
   return (
     <main style={{ margin: "24px" }}>
@@ -72,7 +46,7 @@ export default function Home() {
           Searching for: <span id="search-term"></span>
         </p>
         <input style={{ border: "1px solid black" }} onChange={onChange} />
-        <button onClick={onClick}>Reset Search</button>
+        <button onClick={onReset}>Reset Search</button>
       </div>
       <br />
       <br />
